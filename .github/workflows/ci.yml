@@ -70,4 +70,10 @@ jobs:
           docker pull ${{ secrets.DOCKER_USERNAME }}/go-postgres-app:${{ github.sha }}
           docker stop app || true
           docker rm app || true
-          docker run -d --name app -p 80:8080 ${{ secrets.DOCKER_USERNAME }}/go-postgres-app:${{ github.sha }}
+          docker run -d --name app -p 80:8080 \
+            -e DB_HOST=${{ secrets.RDS_HOST }} \
+            -e DB_PORT=5432 \
+            -e DB_USER=${{ secrets.RDS_USER }} \
+            -e DB_PASSWORD=${{ secrets.RDS_PASSWORD }} \
+            -e DB_NAME=${{ secrets.RDS_NAME }} \
+            ${{ secrets.DOCKER_USERNAME }}/go-postgres-app:${{ github.sha }}

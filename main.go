@@ -5,20 +5,43 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"time"
 
 	_ "github.com/lib/pq"
 )
 
 func main() {
-	dbURL := "postgres://postgres:postgres@db:5432/postgres?sslmode=disable"
-	db, err := sql.Open("postgres", dbURL)
-	if err != nil {
-		log.Fatal("This Error", err)
-	}
-	defer db.Close()
-	err = db.Ping()
-	if err != nil {
-		log.Fatal("Cannot connect to DB:", err)
+	dbHost := os.Getenv("DB_HOST")
+	dbPort := os.Getenv("DB_PORT")
+	dbUser := os.Getenv("DB_USER")
+	dbPass := os.Getenv("DB_PASSWORD")
+	dbName := os.Getenv("DB_NAME")
+
+	dbURL := fmt.Sprintf(
+		"postgres://%s:%s@%s:%s/%s?sslmode=disable",
+		dbUser, dbPass, dbHost, dbPort, dbName,
+	)
+
+	for {
+		db, err := sql.Open("postgres", dbURL)
+		if err != nil {
+			log.Fatal("This Error", err)
+		}
+
+		err = db.Ping()
+		if err != nil {
+			log.Fatal("Cannot connect to DB:", err)
+		}
+
+		if err == nil && db.Ping() == nil {
+			defer db.Close()
+			log.Println("Connected to DB")
+			break
+		}
+
+		log.Println("DB not ready, retrying in 2s...")
+		time.Sleep(2 * time.Second)
 	}
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
