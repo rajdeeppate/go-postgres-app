@@ -19,7 +19,7 @@ func main() {
 	dbName := os.Getenv("DB_NAME")
 
 	dbURL := fmt.Sprintf(
-		"postgres://%s:%s@%s:%s/%s?sslmode=disable",
+		"postgres://%s:%s@%s:%s/%s?sslmode=require",
 		dbUser, dbPass, dbHost, dbPort, dbName,
 	)
 
